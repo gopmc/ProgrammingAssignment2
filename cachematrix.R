@@ -2,25 +2,31 @@
 ## Name: Oliver M. Christensen
 ## Change log: 
 ## 2014-12-17 Initial version downloaded 
-## 2014-12-19 Mean code "template" rewritten from vector mean to inverse matrix 
+## 2014-12-19 Mean code "template" rewritten from vector mean to inverse matrix
+##            Tested and verified with known inversable 3x3 matrix:
+##       [,1] [,2] [,3]                [,1]       [,2]        [,3]
+## [1,]    1    4    7      [1,] -1.1428571  2.0000000  0.42857143
+## [2,]    0    1    4  ->  [2,]  0.9523810 -1.6666667 -0.19047619
+## [3,]    5    6    0      [3,] -0.2380952  0.6666667  0.04761905
 
 ## This function creates a special "matrix" object that can cache its inverse.
- <- function(x = matrix()) {
+makeCacheMatrix<- function(InputMatrix= matrix()) {
   ## Initialize data
-  m <- NULL
+  StoredMean <- NULL
   ## Define functions for getting and setting the global variable InputMatrix
-  set <- function(y) {
-    x <<- y
-    m <<- NULL
+  setMatrix <- function(y) {
+    InputMatrix <<- y
+    StoredMean <<- NULL
   }
-  get <- function() x
+  getMatrix <- function() InputMatrix
   
   ## Define functions for getting and setting the global variable InverseMatrix
-  setmean <- function(mean) m <<- mean
-  getmean <- function() m
+  setInvMatrix <- function(CalculatedInMatrix) StoredMean <<- CalculatedInMatrix
+  getInvMatrix <- function() StoredMean
   
   ## Return list of functions
-  list(set = set, get = get, setmean = setmean, getmean = getmean)
+  list(setMatrix = setMatrix, getMatrix = getMatrix, 
+       setInvMatrix = setInvMatrix, getInvMatrix = getInvMatrix)
 }
 
 
@@ -28,22 +34,22 @@
 ## if input matrix is the same as last time the function was called. 
 ## Input: InputMatrix. Type: Numerical, square and inversable matrix
 ## Returns: The calculated inverse of InputMatrix
-cacheSolve <- function(x, ...) 
+cacheSolve <- function(InputCashObj, ...) 
 {
   # Retrive cached inverse and check if data has changed
-  m <- x$getmean()
+  CalcInvMatrix <- InputCashObj$getInvMatrix() #Reference into the recived function list.
   
-  
-  if(!is.null(m)) 
+  ## If input is unchanged, return the cashed result. 
+  if(!is.null(CalcInvMatrix)) 
   {
     message("getting cached data")
-    return(m)
+    return(CalcInvMatrix)
   }
   
   ## Data has changed. Calculate new inverese matrix.
-  data <- x$get()
-  m <- mean(data, ...)
+  NewInputMatrix <- InputCashObj$getMatrix()
+  CalcInvMatrix <- solve(NewInputMatrix, ...)
   ## Update the cashed value and return the inverse Matrix
-  x$setmean(m)
-  return(m)
+  InputCashObj$setInvMatrix(CalcInvMatrix)
+  return(CalcInvMatrix)
 }
